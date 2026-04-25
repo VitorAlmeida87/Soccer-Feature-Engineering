@@ -141,6 +141,10 @@ To maintain clarity and structure, please follow this framework when adding new 
 * [2nzi - SkillCorner Analytics](https://github.com/2nzi/skillcorner-analytics)
 * [Data Kicks - Dynamic Skills Finder](https://github.com/Data-Kicks/Dynamic-Skills-Finder)
 
+## RESULTS
+
+
+
 ## Contact us
 
 * If you have some feedback, some project research that you want to conduct with our data, reach us on [our website](https://skillcorner.com/#contact-section) or on [Twitter](https://twitter.com/skillcorner)
