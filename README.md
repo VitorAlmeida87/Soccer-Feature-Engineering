@@ -141,7 +141,74 @@ To maintain clarity and structure, please follow this framework when adding new 
 * [2nzi - SkillCorner Analytics](https://github.com/2nzi/skillcorner-analytics)
 * [Data Kicks - Dynamic Skills Finder](https://github.com/Data-Kicks/Dynamic-Skills-Finder)
 
+
+
+
 ## Contact us
 
 * If you have some feedback, some project research that you want to conduct with our data, reach us on [our website](https://skillcorner.com/#contact-section) or on [Twitter](https://twitter.com/skillcorner)
 * If you're interested in our product and want more commercial information contact us on [our website](https://skillcorner.com/#contact-section)
+
+## RESULTS
+
+*- What part of football are you trying to better understand or measure?*
+
+Standard football statistics:  goals, shots, pass completion and measure outcomes. They tell you what happened but not how or why. A team can dominate structurally and lose; a team can win with a single counter while being outplayed for 90 minutes. None of that shows up in the score.
+
+This project targets the structural layer beneath outcomes: the tactical movements, possession patterns, and defensive organisation that create the conditions for goals. We are measuring how a team occupies phases of play, how players move off the ball to generate oportunities, and how teams press as a collective unit none of which is captured by traditional statistics.
+*
+- What the project does?*
+The feature set produces one row per (match_id, team_id) with 40 columns of raw aggregated attributes across four dimensions:
+
+Possession phase volumes and durations: how many times and for how long a team operated in each mode (build-up, create, finish, transition, quick-break) and each defensive shape (high block, medium block, low block).
+Off-ball movement counts: how many off-ball runs were made and of what type (in behind, coming short, overlap, pulling wide).
+Progressive passing structure:  passes forward, passes into the box, total distance moved through passing, and pass options that would have broken defensive lines.
+Collective defensive effort: pressing chain event counts and total chain lengths, capturing organised coordinated pressure as a team behaviour rather than an individual action
+Collectively these describe how a team plays, their style, shape, and intent until the final wistle.
+
+*- How it was built?*
+
+The features come from two data files that SkillCorner produces for every match.
+
+The first file, dynamic events, records every individual action that happens during a match every time a player receives the ball, every off-ball run a teammate makes, every time a player presses an opponent. Each row is one action, tagged with who did it, which team, what type of action it was, and where on the pitch it happened.
+
+The second file, phases of play, records each possession spell as a single row. It captures how long the spell lasted, what tactical mode the team was in (were they patiently building from the back, trying to create chances, finishing in the final third, or breaking quickly on the counter?), and what shape the team held during that spell.
+
+To build the features, we go through every match and ask simple counting and summing questions of these two files:
+
+How many times did this team's possession plays fall into each tactical category? That gives us the phase counts.
+How many total seconds did they spend in each category? That gives us the duration features, computed by taking the start and end timestamp of each spell and converting the difference into seconds.
+How many off-ball runs did players make, and of what type? Runs in behind the defence, runs toward the ball, overlapping runs, runs that drag defenders wide? Those become the off-ball run counts.
+How many times did a player have a pass available that would have bypassed one of the opponent's defensive lines, even if they didn't play it? That gives us the line-breaking opportunity counts.
+How many total metres were covered through passing? How many passes went forward? How many reached the penalty area? Those become the passing features.
+How many times did the team press as a coordinated group, and how long were those pressing sequences? That gives us the pressing features.
+Everything is kept at the level of the full match, one total per team per game. No averages, no percentages, no adjustments. Just the counts and totals as they happened.
+
+*- Accomplishments we're proud of*
+Line-breaking opportunity counts are the most original feature. Rather than counting passes that were played forward, these count pass options that could have broken a defensive line. Whether or not the passer chose to play them. This separates a team's available progressive options from their decision-making, something no standard statistic captures.
+
+Pressing chain lengths go beyond counting pressing events. Summing pressing_chain_length measures how organised and sustained the pressing was  a team that presses 50 times in chains of 4 is doing something fundamentally different from one that presses 50 times in isolated individual actions.
+
+Possession phase durations by type are more informative than overall possession percentage. Knowing a team spent 350 seconds in build-up vs. 80 seconds in finishing phases describes their rhythm and intent regardless of who won.
+
+- *What we learned*
+About football: Tactical style is far more visible in volumes of action types than in outcomes. Two teams can have identical pass-completion rates but completely different attacking structures, one is generating 60 runs behind the defence, the other generating 8.
+
+About data representation: Possession is not binary. SkillCorner's phase-type classification reveals that "in possession" covers five qualitatively different game states. Collapsing them into a single number loses enormous information.
+
+About feature engineering: Raw counts are genuinely more useful as a starting point than ratios. A ratio like "runs per possession" removes the information that one team had twice as many possessions — which is itself a meaningful signal.
+
+*- Next steps, Improve features:*
+
+Right now, every action in the match is counted the same way regardless of when it happened or what the score was. But football doesn't work like that, a team pressing aggressively when they're losing in the final minutes is doing something completely different from a team pressing at 0–0 in the first half. The next step is to split every feature by match situation: first half vs. second half, and whether the team was winning, drawing, or losing at the time. This would make the numbers much more meaningful.
+
+We'd also expand the types of runs being tracked. Currently we capture four run types; the data already contains four more: runs to support the ball carrier, underlapping runs between defenders and the near post, runs that drag defenders out of the half-spaces, and dropping runs from attackers checking back to receive. Adding these would give a fuller picture of how teams move off the ball.
+
+Check whether the features actually mean something
+
+The most important question about any new measurement is whether it genuinely separates different types of teams. If you took every team's feature profile and grouped similar ones together, you'd expect teams known for pressing hard to cluster together, possession-based teams to cluster together, and counter-attacking teams to cluster together. Testing that is the clearest way to know whether the features are capturing something real.
+
+A second check would be consistency: does the same team produce similar feature profiles across different matches? If the numbers swing wildly from game to game, the features may be too sensitive to random events in a single match to be reliable.
+
+
+The ultimate test of a feature set is whether it helps answer real questions. One natural question is: can these structural features show how a team moves, presses, and progresses the ball? Are predict match results better than traditional stats alone? Another is whether, over a full season, if teams naturally sort themselves into recognisable tactical styles based on their feature profiles. Both would turn this dataset into  astonishing footbal tactics wisdom.
